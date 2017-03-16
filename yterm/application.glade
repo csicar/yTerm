@@ -1,13 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.20.0 -->
 <interface>
-  <requires lib="gtk+" version="3.0"/>
-  <object class="GtkTextView" id="process_textview">
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkExpander" id="process_history_item">
     <property name="visible">True</property>
     <property name="can_focus">True</property>
-    <property name="editable">False</property>
-    <property name="wrap_mode">char</property>
-    <property name="monospace">True</property>
+    <property name="expanded">True</property>
+    <child>
+      <object class="GtkBox" id="process_history_content">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+    <child type="label">
+      <object class="GtkLabel" id="process_history_name">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="hexpand">True</property>
+        <property name="label" translatable="yes">expander</property>
+      </object>
+    </child>
   </object>
   <object class="GtkBox" id="yterm_container">
     <property name="visible">True</property>
@@ -20,18 +38,14 @@
         <property name="shadow_type">in</property>
         <property name="propagate_natural_height">True</property>
         <child>
-          <object class="GtkViewport" id="process_history_viewport">
+          <object class="GtkViewport">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkBox" id="process_history">
+              <object class="GtkListBox" id="process_history_list">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="orientation">vertical</property>
-                <property name="spacing">8</property>
-                <child>
-                  <placeholder/>
-                </child>
+                <property name="selection_mode">none</property>
               </object>
             </child>
           </object>

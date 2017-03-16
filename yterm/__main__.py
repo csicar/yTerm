@@ -19,18 +19,31 @@ import sys
 import signal
 import gi
 import subprocess
-gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-from subprocess import Popen
+gi.require_version('Gtk', '3.0')
+
+import commands
 
 
 class ProcessHistory:
     def __init__(self, view):
         self.view = view;
 
-    def add_history_element(self, element):
-        self.view.pack_start(element, True, True, 0)
+    def add_history_element(self, element, command):
+        builder = Gtk.Builder()
+        builder.add_from_file("application.glade")
+        item = builder.get_object("process_history_item")
+        content = builder.get_object("process_history_content")
+        scroll_pane = builder.get_object("process_history_scroll")
+        content.pack_start(element, True, True, 0)
+        name = builder.get_object("process_history_name")
+        name.set_text(command)
+        self.view.insert(item,-1)
+        print(scroll_pane)
+        scroll_pane.do_scroll_child(scroll_pane, Gtk.ScrollType.END, True)
         self.view.show_all()
+
+        scroll_pane.do_scroll_child(scroll_pane, Gtk.ScrollType.END, True)
 
 
 class Handler:
@@ -39,12 +52,19 @@ class Handler:
 
     def runCommand(self, entry):
         raw_command = entry.get_buffer().get_text()
-        output = Popen(raw_command, shell=True, stdout=subprocess.PIPE).stdout.read()
-        builder = Gtk.Builder()
-        builder.add_from_file("application.glade")
-        textview = builder.get_object("process_textview")
-        textview.get_buffer().set_text(output.decode("utf-8"))
-        self.process_history.add_history_element(textview);
+        print(raw_command)
+        splitted = raw_command.split(" ")
+        start = splitted[0]
+        arguments = raw_command[len(start)+1:]
+        print( arguments)
+        view = None
+        if start in commands.commands['l1commands'] :
+            process = matching_command = commands.commands['l1commands'][start]()
+            view = process.display_output(process.execute(process.parse_input(arguments)))
+        else:
+            process = commands.commands['default']()
+            view = process.display_output(process.execute(process.parse_input(raw_command)))
+        self.process_history.add_history_element(view, raw_command);
 
 
 class Application(Gtk.Application):
@@ -54,7 +74,7 @@ class Application(Gtk.Application):
 
         self.builder = Gtk.Builder()
         self.builder.add_from_file("application.glade")
-        self.process_history_view = self.builder.get_object("process_history")
+        self.process_history_view = self.builder.get_object("process_history_list")
         self.process_history = ProcessHistory(self.process_history_view)
         self.builder.connect_signals(Handler(self.process_history))
 

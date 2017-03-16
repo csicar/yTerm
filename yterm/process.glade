@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.20.0 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkFlowBox" id="flow">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="homogeneous">True</property>
+  </object>
+  <object class="GtkTextView" id="textview">
+    <property name="visible">True</property>
+    <property name="can_focus">True</property>
+    <property name="tooltip_text" translatable="yes">treeview</property>
+    <property name="editable">False</property>
+    <property name="wrap_mode">char</property>
+    <property name="monospace">True</property>
+  </object>
+</interface>
