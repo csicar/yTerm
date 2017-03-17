@@ -28,7 +28,7 @@ import commands
 settings = Gtk.Settings.get_default()
 settings.set_property("gtk-application-prefer-dark-theme", True)
 context = {
-    "cwd": os.path.expanduser("~"),
+    "cwd": os.getcwd(),
     "env": [],
 }
 history = []
@@ -75,6 +75,11 @@ class Handler:
         self.process_history.add_history_element(view, raw_command);
         entry.grab_focus()
 
+    def commandKeyPress(self, entry, ev, data=None):
+        print(ev.keyval)
+
+    def commandPipe(self, entry):
+        print(ev.keyval)
 
 class Application(Gtk.Application):
     def __init__(self, **kwargs):
