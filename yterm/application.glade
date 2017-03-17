@@ -6,6 +6,7 @@
     <property name="visible">True</property>
     <property name="can_focus">True</property>
     <property name="expanded">True</property>
+    <property name="label_fill">True</property>
     <child>
       <object class="GtkBox" id="process_history_content">
         <property name="visible">True</property>
@@ -19,11 +20,50 @@
       </object>
     </child>
     <child type="label">
-      <object class="GtkLabel" id="process_history_name">
+      <object class="GtkBox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="hexpand">True</property>
-        <property name="label" translatable="yes">expander</property>
+        <child>
+          <object class="GtkLabel" id="process_history_user">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">label</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="padding">17</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="process_history_cwd">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">label</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="padding">12</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="process_history_name">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">label</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
       </object>
     </child>
   </object>
@@ -35,6 +75,7 @@
       <object class="GtkScrolledWindow" id="process_history_scroll">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
+        <property name="vexpand">True</property>
         <property name="shadow_type">in</property>
         <property name="propagate_natural_height">True</property>
         <child>
@@ -61,6 +102,7 @@
       <object class="GtkEntry" id="command_input">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
+        <property name="has_focus">True</property>
         <property name="primary_icon_stock">gtk-go-forward</property>
         <signal name="activate" handler="runCommand" swapped="no"/>
       </object>

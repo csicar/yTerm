@@ -18,12 +18,20 @@
 import sys
 import signal
 import gi
+import os
+import getpass
 import subprocess
 from gi.repository import Gtk
 gi.require_version('Gtk', '3.0')
 
 import commands
-
+settings = Gtk.Settings.get_default()
+settings.set_property("gtk-application-prefer-dark-theme", True)
+context = {
+    "cwd": os.path.expanduser("~"),
+    "env": [],
+}
+history = []
 
 class ProcessHistory:
     def __init__(self, view):
@@ -37,13 +45,15 @@ class ProcessHistory:
         scroll_pane = builder.get_object("process_history_scroll")
         content.pack_start(element, True, True, 0)
         name = builder.get_object("process_history_name")
+        user = builder.get_object("process_history_user")
+        cwd = builder.get_object("process_history_cwd")
         name.set_text(command)
+        user.set_text(getpass.getuser())
+        cwd.set_text(context['cwd'])
         self.view.insert(item,-1)
-        print(scroll_pane)
         scroll_pane.do_scroll_child(scroll_pane, Gtk.ScrollType.END, True)
         self.view.show_all()
-
-        scroll_pane.do_scroll_child(scroll_pane, Gtk.ScrollType.END, True)
+        #TODO: make it scroll to the bottom
 
 
 class Handler:
@@ -52,19 +62,18 @@ class Handler:
 
     def runCommand(self, entry):
         raw_command = entry.get_buffer().get_text()
-        print(raw_command)
         splitted = raw_command.split(" ")
         start = splitted[0]
         arguments = raw_command[len(start)+1:]
-        print( arguments)
         view = None
         if start in commands.commands['l1commands'] :
-            process = matching_command = commands.commands['l1commands'][start]()
+            process = commands.commands['l1commands'][start](context)
             view = process.display_output(process.execute(process.parse_input(arguments)))
         else:
-            process = commands.commands['default']()
+            process = commands.commands['default'](context)
             view = process.display_output(process.execute(process.parse_input(raw_command)))
         self.process_history.add_history_element(view, raw_command);
+        entry.grab_focus()
 
 
 class Application(Gtk.Application):

@@ -7,13 +7,17 @@ import subprocess
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
-
-
+from gi.repository import Gtk, WebKit
 
 
 class Command:
-    def parse_input(raw_input):
+    def __init__(self, context):
+        self.context = context
+
+    def _cwd(self):
+        return self.context['cwd']
+
+    def parse_input(self, raw_input):
         pass
 
     def execute(self, parsed_input):
@@ -22,6 +26,8 @@ class Command:
     def display_output(self, parsed_output):
         pass
 
+def parse_fileinput(cwd, string):
+    return os.path.join(cwd, string)
 #def table_renderer(data):
 
 
@@ -31,14 +37,13 @@ class RenderedCommand(Command):
         sub_type = parsed_output['subtype']
         data = parsed_output['data']
 
-class LS(Command):
-    def __init__(self):
-        self.name = "ls"
+class Ls(Command):
 
     def parse_input(self, raw_input):
-        print("parse_input")
-        print(raw_input)
-        return raw_input.split(" ")
+        return list(map(
+            (lambda path: parse_fileinput(self._cwd(), path)),
+            raw_input.split(" ")
+            ))
 
     def execute(self, parsed_input):
         folder = None
@@ -81,35 +86,100 @@ class LS(Command):
         flow = builder.get_object("flow")
         for entry in parsed_output:
             entry_view = Gtk.HBox()
-            print(entry["type"])
             icon = Gtk.Image(stock=icon_types[entry["type"]])
             entry_view.pack_start(icon, False, False, 0)
             entry_view.pack_start(Gtk.Label(entry["name"]), False, False, 0)
             flow.insert(entry_view, -1)
         return flow
 
+class Image(Command):
+    def parse_input(self, file):
+        return {
+            "file": parse_fileinput(self._cwd(), string)
+        }
+
+    def execute(self, file):
+        return file
+
+    def display_output(self, file):
+        return Gtk.Image.new_from_file(file['file'])
+
+class Cd(Command):
+    def parse_input(self, file):
+        return {
+            "file": parse_fileinput(self._cwd(), file)
+        }
+
+    def execute(self, file):
+        if os.path.isdir(file["file"]):
+            self.context['cwd'] = file['file']
+        else:
+            return {"error": "Folder does not exist"}
+        return {"error": None, "file": file}
+
+    def display_output(self, output):
+        if output["error"] is None:
+            return Gtk.Label("")
+        return Gtk.Label(output["error"])
+
+class Web(Command):
+    def parse_input(self, url):
+        return {
+            "url": url
+        }
+
+    def execute(self, url):
+        return url
+
+    def display_output(self, output):
+        webview =  WebKit.WebView()
+        webview.load_uri(output['url'])
+        return webview
+
+
 
 class Bash(Command):
-    def __init__(self):
-        self.name = "ls"
 
     def parse_input(self, raw_input):
         return raw_input
 
     def execute(self, parsed_input):
-        output = Popen(parsed_input, shell=True, stdout=subprocess.PIPE).stdout.read()
-        return output.decode("utf-8")
+        execution = Popen(parsed_input,
+            shell=True,
+            stdout=subprocess.PIPE,
+            cwd=self._cwd())
+        (output, err) = execution.communicate(timeout=1000)
+        if output is None:
+            return {
+                "success": False,
+                "error": "Error"
+            }
+        return {
+            "output": output.decode("utf-8"),
+            "success": err is None
+            }
 
     def display_output(self, parsed_output):
         builder = Gtk.Builder()
         builder.add_from_file("process.glade")
         textview = builder.get_object("textview")
-        textview.get_buffer().set_text(parsed_output)
+
+        output_text = ""
+        if parsed_output["success"]:
+            output_text = parsed_output["output"]
+        else:
+            output_text = parsed_output["error"]
+
+        textview.get_buffer().set_text(output_text)
         return textview;
+
 
 commands = {
     "l1commands": {
-        "ls": LS
+        "ls": Ls,
+        "image": Image,
+        "cd": Cd,
+        "web": Web
     },
     "default": Bash
 }
