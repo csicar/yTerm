@@ -7,6 +7,7 @@ import subprocess
 
 import gi
 gi.require_version('Gtk', '3.0')
+gi.require_version('WebKit', '3.0')
 from gi.repository import Gtk, WebKit
 
 

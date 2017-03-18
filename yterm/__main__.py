@@ -21,10 +21,12 @@ import gi
 import os
 import getpass
 import subprocess
-from gi.repository import Gtk
+
 gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
 
 import commands
+
 settings = Gtk.Settings.get_default()
 settings.set_property("gtk-application-prefer-dark-theme", True)
 context = {
