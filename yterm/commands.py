@@ -8,7 +8,8 @@ import subprocess
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('WebKit', '3.0')
-from gi.repository import Gtk, WebKit
+gi.require_version('Vte', '2.91')
+from gi.repository import Gtk, WebKit, Vte, GLib
 
 
 class Command:
@@ -29,7 +30,7 @@ class Command:
 
 def parse_fileinput(cwd, string):
     return os.path.join(cwd, string)
-#def table_renderer(data):
+# def table_renderer(data):
 
 
 class RenderedCommand(Command):
@@ -139,7 +140,7 @@ class Web(Command):
 
 
 
-class Bash(Command):
+class SimpleShellCommand(Command):
 
     def parse_input(self, raw_input):
         return raw_input
@@ -174,6 +175,17 @@ class Bash(Command):
         textview.get_buffer().set_text(output_text)
         return textview;
 
+class Bash(Command):
+    def parse_input(self, raw_input):
+        return ["bash", "-c", '"'+raw_input+'"']
+
+    def execute(self, parsed_input):
+        self.vte = Vte.Terminal.new()
+        self.vte.spawn_sync(Vte.PtyFlags.DEFAULT, None, ["/usr/bin/bash", "-c", '"node"'], None, GLib.SpawnFlags.DEFAULT, None)
+        return self.vte
+
+    def display_output(self, parsed_output):
+        return self.vte
 
 commands = {
     "l1commands": {
