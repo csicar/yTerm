@@ -9,7 +9,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('WebKit', '3.0')
 gi.require_version('Vte', '2.91')
-from gi.repository import Gtk, WebKit, Vte, GLib
+from gi.repository import Gtk, WebKit, Vte, GLib, GObject
 
 
 class Command:
@@ -176,16 +176,33 @@ class SimpleShellCommand(Command):
         return textview;
 
 class Bash(Command):
+    def _deactive_vte(self, vte):
+        print("disabled")
+        vte.set_input_enabled(False)
+        vte.set_property("can_focus", False)
+        vte.set_property("sensitive", False)
+
+    def _resize_container(self, vte):
+        # TODO: find proper way to set the height
+        new_height = (self.vte.get_cursor_position().row + 2 )*self.vte.get_char_height()
+        self.container.set_property("height-request", new_height)
+
     def parse_input(self, raw_input):
-        return ["bash", "-c", '"'+raw_input+'"']
+        return ["/usr/bin/bash", "-c", '"'+raw_input+'"']
 
     def execute(self, parsed_input):
         self.vte = Vte.Terminal.new()
-        self.vte.spawn_sync(Vte.PtyFlags.DEFAULT, None, ["/usr/bin/bash", "-c", '"node"'], None, GLib.SpawnFlags.DEFAULT, None)
+        self.vte.spawn_sync(Vte.PtyFlags.DEFAULT, None, parsed_input, None, GLib.SpawnFlags.DEFAULT, None)
+        self.vte.connect("eof", self._deactive_vte)
         return self.vte
 
     def display_output(self, parsed_output):
-        return self.vte
+
+        self.container = Gtk.VBox()
+
+        self.vte.connect("contents-changed", self._resize_container)
+        self.container.pack_start(self.vte, True, True, 0)
+        return self.container
 
 commands = {
     "l1commands": {
