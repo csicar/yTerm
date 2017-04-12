@@ -3,6 +3,7 @@ import os
 import json
 from subprocess import Popen
 import subprocess
+import shlex
 
 
 import gi
@@ -15,9 +16,14 @@ from gi.repository import Gtk, WebKit, Vte, GLib, GObject
 class Command:
     def __init__(self, context):
         self.context = context
+        if self.context['env'] is None:
+            self.context['env'] = []
 
     def _cwd(self):
         return self.context['cwd']
+
+    def _env(self):
+        return self.context['env']
 
     def parse_input(self, raw_input):
         pass
@@ -30,7 +36,6 @@ class Command:
 
 def parse_fileinput(cwd, string):
     return os.path.join(cwd, string)
-# def table_renderer(data):
 
 
 class RenderedCommand(Command):
@@ -182,18 +187,29 @@ class Bash(Command):
         vte.set_property("can_focus", False)
         vte.set_property("sensitive", False)
 
+    def _child_exit(self, vte, status):
+        print("child-exit")
+        print(status)
+
+        self._deactive_vte(vte)
+
     def _resize_container(self, vte):
+        print(vte.get_pty())
+
         # TODO: find proper way to set the height
         new_height = (self.vte.get_cursor_position().row + 2 )*self.vte.get_char_height()
-        self.container.set_property("height-request", new_height)
+        #self.container.set_property("height-request", new_height)
+        self.container.set_property("height-request", 400)
 
     def parse_input(self, raw_input):
-        return ["/usr/bin/bash", "-c", '"'+raw_input+'"']
+        return ["/usr/bin/bash", "-c", shlex.quote(raw_input)]
 
     def execute(self, parsed_input):
+        print(parsed_input)
         self.vte = Vte.Terminal.new()
-        self.vte.spawn_sync(Vte.PtyFlags.DEFAULT, None, parsed_input, None, GLib.SpawnFlags.DEFAULT, None)
         self.vte.connect("eof", self._deactive_vte)
+        self.vte.connect("child-exited", self._child_exit)
+        self.vte.spawn_sync(Vte.PtyFlags.DEFAULT, self._cwd(), parsed_input, self._env(), GLib.SpawnFlags.DEFAULT, None)
         return self.vte
 
     def display_output(self, parsed_output):
