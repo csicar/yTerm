@@ -102,7 +102,7 @@ class Ls(Command):
 class Image(Command):
     def parse_input(self, file):
         return {
-            "file": parse_fileinput(self._cwd(), string)
+            "file": parse_fileinput(self._cwd(), file)
         }
 
     def execute(self, file):
@@ -131,9 +131,20 @@ class Cd(Command):
 
 class Web(Command):
     def parse_input(self, url):
-        return {
-            "url": url
-        }
+        if url.startswith("http://") or url.startswith("https://"):
+            return {
+                "url": url
+            }
+        else:
+            filepath = parse_fileinput(self._cwd(), url)
+            if os.path.isfile(filepath):
+                return {
+                    "url": "file:///"+filepath
+                }
+            else:
+                return {
+                    "url": "http://"+url
+                }
 
     def execute(self, url):
         return url
@@ -202,14 +213,17 @@ class Bash(Command):
         self.container.set_property("height-request", 400)
 
     def parse_input(self, raw_input):
-        return ["/usr/bin/bash", "-c", shlex.quote(raw_input)]
+        # TODO: find proper way to run quick commands
+        escaped = shlex.quote(raw_input + "; sleep 2")
+
+        return ["/usr/bin/bash", "-c", escaped[1:-1]]
 
     def execute(self, parsed_input):
         print(parsed_input)
         self.vte = Vte.Terminal.new()
         self.vte.connect("eof", self._deactive_vte)
         self.vte.connect("child-exited", self._child_exit)
-        self.vte.spawn_sync(Vte.PtyFlags.DEFAULT, self._cwd(), parsed_input, self._env(), GLib.SpawnFlags.DEFAULT, None)
+        self.vte.spawn_sync(Vte.PtyFlags.DEFAULT, self._cwd(), parsed_input, self._env(), GLib.SpawnFlags.SEARCH_PATH_FROM_ENVP, None)
         return self.vte
 
     def display_output(self, parsed_output):
