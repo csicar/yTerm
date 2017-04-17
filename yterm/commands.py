@@ -205,12 +205,9 @@ class Bash(Command):
         self._deactive_vte(vte)
 
     def _resize_container(self, vte):
-        print(vte.get_pty())
-
         # TODO: find proper way to set the height
         new_height = (self.vte.get_cursor_position().row + 2 )*self.vte.get_char_height()
-        #self.container.set_property("height-request", new_height)
-        self.container.set_property("height-request", 400)
+        self.container.set_property("height-request", min(max(new_height, 400), 1000))
 
     def parse_input(self, raw_input):
         # TODO: find proper way to run quick commands
