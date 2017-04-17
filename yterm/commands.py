@@ -210,6 +210,8 @@ class Bash(Command):
         self.container.set_property("height-request", min(max(new_height, 400), 1000))
 
     def parse_input(self, raw_input):
+        # sleep 2 is necessary for quickly terminating commands like "cat"
+        # to display any output to the vte.
         # TODO: find proper way to run quick commands
         escaped = shlex.quote(raw_input + "; sleep 2")
 
