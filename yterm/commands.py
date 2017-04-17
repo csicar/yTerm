@@ -207,7 +207,7 @@ class Bash(Command):
     def _resize_container(self, vte):
         # TODO: find proper way to set the height
         new_height = (self.vte.get_cursor_position().row + 2 )*self.vte.get_char_height()
-        self.container.set_property("height-request", min(max(new_height, 400), 1000))
+        self.container.set_property("height-request", min(max(new_height, 200), 1000))
 
     def parse_input(self, raw_input):
         # sleep 2 is necessary for quickly terminating commands like "cat"
