@@ -1,3 +1,4 @@
+#!/bin/env python
 # __main__.py
 #
 # Copyright (C) 2017 Carsten Csiky (csicar)
