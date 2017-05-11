@@ -21,6 +21,10 @@ import gi
 import os
 import getpass
 import subprocess
+import runpy
+import importlib.util
+
+from envparse import env
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -57,6 +61,17 @@ class ProcessHistory:
         self.view.show_all()
         #TODO: make it scroll to the bottom
 
+def _get_command(name):
+    directorys = env('YPATH', cast=list, subcast=str)
+
+    for directory in directorys:
+    	for entry in os.listdir(directory):
+            if (entry == name+".py"):
+                absEntry = os.path.join(directory, entry)
+                return absEntry
+
+
+
 
 class Handler:
     def __init__(self, process_history):
@@ -68,7 +83,16 @@ class Handler:
         start = splitted[0]
         arguments = raw_command[len(start)+1:]
         view = None
-        if start in commands.commands['l1commands'] :
+        command = _get_command(start)
+        if not (command is None):
+            spec = importlib.util.spec_from_file_location("ls", command)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+
+            process = mod.get_command()(context)
+            view = process.display_output(process.execute(process.parse_input(arguments)))
+            print(view)
+        elif start in commands.commands['l1commands'] :
             process = commands.commands['l1commands'][start](context)
             view = process.display_output(process.execute(process.parse_input(arguments)))
         else:
